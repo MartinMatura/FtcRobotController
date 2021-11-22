@@ -26,7 +26,6 @@ public class BasicDriveMode extends LinearOpMode {
         while(opModeIsActive()){
             double x = gamepad1.left_stick_x;
             double y = gamepad1.left_stick_y;
-
         }
     }
 }
