@@ -26,6 +26,16 @@ public class BasicDriveMode extends LinearOpMode {
         while(opModeIsActive()){
             double x = gamepad1.left_stick_x;
             double y = gamepad1.left_stick_y;
+
+            double speedCoe = Range.clip(1 - gamepad1.left_trigger, 0.3, 1.0);
+
+            double frontBack = Range.clip((y - x) * speedCoe, -1.0, 1.0);
+            double backFront = Range.clip((y + x) * speedCoe, -1.0, 1.0);
+
+            robot.leftFront.setPower(frontBack);
+            robot.rightBack.setPower(frontBack);
+            robot.rightFront.setPower(backFront);
+            robot.leftBack.setPower(backFront);
         }
     }
 }
