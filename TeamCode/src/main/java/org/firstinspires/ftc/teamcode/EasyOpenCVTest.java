@@ -13,33 +13,33 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera2;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-    /*
-     * Copyright (c) 2020 OpenFTC Team
-     *
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     *
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
-     */
+/*
+ * Copyright (c) 2020 OpenFTC Team
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 
 
-    /*
-     * This version of the internal camera example uses EasyOpenCV's interface to the
-     * Android Camera2 API
-     */
+/*
+ * This version of the internal camera example uses EasyOpenCV's interface to the
+ * Android Camera2 API
+ */
 
 @TeleOp
 public class EasyOpenCVTest extends LinearOpMode {
@@ -153,11 +153,62 @@ public class EasyOpenCVTest extends LinearOpMode {
          * if you're doing something weird where you do need it synchronized with your OpMode thread,
          * then you will need to account for that accordingly.
          */
+
     }
 
     class TestPipeline extends OpenCvPipeline {
+
+        public int detectObject(Mat in){
+            return 1;
+        }
+
+        private double[][] matToArray(Mat input){
+            double[][] result = new double[input.height()][input.width()];
+            int imgWidth = input.width();
+            int imgHeight = input.height();
+//            for(int section = 0; section < 3; section++){
+            for(int r = 0; r < imgHeight; r++){
+                Mat row = input.row(r);
+                //                int width = (imgWidth / 3) * section;
+                int width = row.width();
+                for(int c = 0; c < width; c++){
+                    result[r][c] = input.get(r, c)[0];
+                }
+            }
+//            }
+            return result;
+        }
+
+        private double calculateCorrelation(double[][] img, int color){
+            double[] diffs = new double[img.length * img[1].length];
+            for(int r = 0; r < img.length; r++){
+                double[] row = img[r];
+                for(int c = 0; c < row.length; c++){
+                    double pixel = row[c];
+                    double diff = Math.abs(color - pixel);
+                    diffs[img[1].length * r + c] = diff;
+                }
+            }
+            double total = 0;
+            for (double diff : diffs) {
+                total += diff;
+            }
+            double avg = total / diffs.length;
+            return avg / 255;
+        }
+
         @Override
         public Mat processFrame(Mat input) {
+            int color = 0x0d9c9a;
+            double[][] img = matToArray(input);
+            double cor = calculateCorrelation(img, color);
+            String text = String.format("Avg. correlation: %f", cor);
+            Point position = new Point(170, 280);
+            Scalar textColor = new Scalar(0, 0, 255);
+            int font = Imgproc.FONT_HERSHEY_SIMPLEX;
+            int scale = 1;
+            int thickness = 3;
+            Imgproc.putText(input, text, position, font, scale, textColor, thickness);
             return input;
         }
     }
